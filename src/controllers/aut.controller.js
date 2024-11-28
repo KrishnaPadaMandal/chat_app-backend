@@ -1,6 +1,6 @@
 import { generateToken } from "../lib/utilit.js";
 import User from "../models/user.model.js";
-import bcrypt from "bcrypt";  // Correct import statement
+import bcrypt from "bcrypt";  
 
 export const signup = async (req, res) => {
   try {
@@ -42,10 +42,45 @@ export const signup = async (req, res) => {
   }
 };
 
-export const login = (req, res) => {
-  res.send("Login route");
-};
+export const login = async (req, res) => {
+    try {
+      const { email, password } = req.body;  
+  
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+      }
+  
+      const user = await User.findOne({ email });
+      if (!user) {
+        return res.status(400).json({ message: "User not found" });
+      }
+  
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Invalid credentials" });
+      }
+      generateToken(user._id, res);  
+      res.status(200).json({
+        message: "Login successful",
+        user: {
+          id: user._id,
+          fullName: user.fullName,
+          email: user.email,
+        },
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  };
 
 export const logout = (req, res) => {
-  res.send("Logout route");
+ try {
+    res.clearCookie("token", { httpOnly: true, secure: true, sameSite: "None" });
+
+  res.status(200).json({ message: "Successfully logged out" });
+    
+ } catch (error) {
+    
+ }
 };
