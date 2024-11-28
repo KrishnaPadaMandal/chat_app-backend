@@ -5,6 +5,11 @@ import bcrypt from "bcrypt";  // Correct import statement
 export const signup = async (req, res) => {
   try {
     const { fullName, email, password } = req.body;
+    if(!fullName || !email || !password)
+    {
+        return res.status(400).json({ message: "All Field Required" });
+
+    }
 
     if (password.length < 6) {
       return res.status(400).json({ message: "Password must be at least 6 characters" });
