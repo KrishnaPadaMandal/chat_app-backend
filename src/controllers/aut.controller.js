@@ -1,6 +1,7 @@
 import { generateToken } from "../lib/utilit.js";
 import User from "../models/user.model.js";
 import bcrypt from "bcrypt";  
+import cloudinary from '../lib/cloudinary.js'
 
 export const signup = async (req, res) => {
   try {
@@ -76,11 +77,46 @@ export const login = async (req, res) => {
 
 export const logout = (req, res) => {
  try {
-    res.clearCookie("token", { httpOnly: true, secure: true, sameSite: "None" });
+    res.clearCookie("jwt", { httpOnly: true, secure: true, sameSite: "None" });
 
   res.status(200).json({ message: "Successfully logged out" });
     
  } catch (error) {
+  console.log("Error",error)
     
  }
 };
+
+export const updatedProfile = async(req,res)=>{
+  try {
+    const {profilePic} = req.body
+    const userId  = req.user._id;
+    if(!profilePic)
+    {
+      return res.status(400).json({ message: "Profile pic is required" });
+
+    }
+   const profileUrl = await cloudinary.uploader.upload(profilePic)
+   const updatedUser = await User.findById(userId,{profilePic:profileUrl.secure_url},{new:true})
+   res.status(200).json({message:"Upload Done"})
+
+
+    
+  } catch (error) {
+
+    console.log("Error",error)
+    
+  }
+}
+
+export const checkAuth = (req,res)=>{
+  try {
+    console.log("req.user",req.user)
+    const userDetails = req.user
+    res.status(200).json({userDetails:userDetails})
+    
+  } catch (error) {
+    console.log("Error",error)
+    
+  }
+}
